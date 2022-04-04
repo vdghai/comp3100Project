@@ -10,13 +10,12 @@ public class MyClient {
 
 		String S_reply;
 		String client = "HELO\n";
-		String gets;
+		String data;
 		int count = 1;
-		int[] lrrArray;
+		int[] Array_Server;
 		int max = 0;
-		int idx = 0;
-		String lrrName = "";
-		int totalServers = 0;
+		String lrrServer = "";
+		int allServers = 0;
 
 		dout.write(client.getBytes());
 		dout.flush();
@@ -46,59 +45,57 @@ public class MyClient {
 		S_reply = dis.readLine();
 		System.out.println("message= " + S_reply);
 
-		gets = S_reply;
-		System.out.println("Gets = " + gets);
-		int id1 = gets.indexOf("DATA") + 5;
-		int id2 = gets.indexOf(' ', gets.indexOf(' ') + 1);
-		System.out.println("1 : " + id1);
-		System.out.println("2 : " + id2);
-		String extract = gets.substring(id1, id2);
-		System.out.println("Extract = " + extract);
-		int getsInt = Integer.parseInt(extract);
-		System.out.println("Int = " + getsInt);
+		data = S_reply;
+		System.out.println("Servers = " + data);
+		int id1 = data.indexOf("DATA") + 5;
+		int id2 = data.indexOf(' ', data.indexOf(' ') + 1);
+		String records = data.substring(id1, id2);
+		System.out.println("nRec = " + records);
+		int dataInt = Integer.parseInt(records);
+		System.out.println("Int = " + dataInt);
 
-		lrrArray = new int[getsInt];
+		Array_Server = new int[dataInt];
 
 		client = "OK\n";
 		dout.write(client.getBytes());
 		dout.flush();
 
-		String[] nRec = new String[getsInt];
+		String[] nRec = new String[dataInt];
 		int i = 0;
-		while (i < getsInt) {
+		while (i < dataInt) {
 			S_reply = dis.readLine();
 			nRec[i] = S_reply;
 			System.out.println("nRec: " + nRec[i]);
 			i++;
 		}
 
-		int[] coreNum = new int[getsInt];
+		int[] core = new int[dataInt];
 		String[] cores;
 
-		for (int k = 0; k < lrrArray.length; k++) {
+		for (int k = 0; k < Array_Server.length; k++) {
 			cores = nRec[k].split(" ");
-			coreNum[k] = Integer.parseInt(cores[4]);
+			core[k] = Integer.parseInt(cores[4]);
 		}
 
-		for (int j = 0; j < coreNum.length; j++) {
-			if (coreNum[j] > coreNum[idx]) {
+		for (int j = 0; j < core.length; j++) {
+			if (core[j] > core[0]) {
 				max = j;
 			}
 		}
 
-		String[] temp = nRec[max].split(" ");
-		lrrName = temp[0];
+		String[] hold = nRec[max].split(" ");
+		lrrServer = hold[0];
 
 		for (int r = 0; r < nRec.length; r++) {
-			if (nRec[r].contains(lrrName)) {
-				totalServers++;
+			if (nRec[r].contains(lrrServer)) {
+				allServers++;
 			}
 		}
 
-		int currServer = 0;
+		int ServerID = 0;
 
-		System.out.println(lrrName);
-		System.out.println(totalServers);
+		System.out.println(lrrServer);
+		System.out.println(allServers);
 
 		client = "OK\n";
 		dout.write(client.getBytes());
@@ -107,7 +104,7 @@ public class MyClient {
 		S_reply = dis.readLine();
 		System.out.println(S_reply);
 
-		client = "SCHD 0 " + lrrName + " 0\n";
+		client = "SCHD 0 " + lrrServer + " 0\n";
 		dout.write(client.getBytes());
 		dout.flush();
 		S_reply = dis.readLine();
@@ -121,15 +118,15 @@ public class MyClient {
 			S_reply = dis.readLine();
 			System.out.println("message= " + S_reply);
 			if (S_reply.contains("JOBN")) {
-				client = "SCHD " + count + " " + lrrName + " " + currServer + "\n";
+				client = "SCHD " + count + " " + lrrServer + " " + ServerID + "\n";
 				dout.write(client.getBytes());
 				dout.flush();
 				S_reply = dis.readLine();
 				System.out.println(S_reply);
 				count++;
-				currServer++;
-				if (currServer == totalServers) {
-					currServer = 0;
+				ServerID++;
+				if (ServerID == allServers) {
+					ServerID = 0;
 				}
 			}
 		}
